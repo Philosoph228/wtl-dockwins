@@ -18,19 +18,22 @@
 #if _MSC_VER >= 1000
 #pragma once
 #endif // _MSC_VER >= 1000
+
 /*
 class CMainFrame : public CMDIFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>,
         public CMessageFilter, public CIdleHandler
 */
-const UINT CWM_INITIALIZE    = dockwins::WMDF_LAST+1;
+
+const UINT CWM_INITIALIZE = dockwins::WMDF_LAST + 1;
 
 class CMainFrame :
-        public dockwins::CMDIDockingFrameImpl<CMainFrame>,
-        public CUpdateUI<CMainFrame>,
-        public CMessageFilter,
-        public CIdleHandler
+    public dockwins::CMDIDockingFrameImpl<CMainFrame>,
+    public CUpdateUI<CMainFrame>,
+    public CMessageFilter,
+    public CIdleHandler
 {
     typedef dockwins::CMDIDockingFrameImpl<CMainFrame> baseClass;
+
 public:
     DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
 
@@ -48,13 +51,17 @@ public:
 
     virtual BOOL PreTranslateMessage(MSG* pMsg)
     {
-        if(baseClass::PreTranslateMessage(pMsg))
+        if (baseClass::PreTranslateMessage(pMsg))
+        {
             return TRUE;
+        }
 
         if (m_hWnd) {
             HWND hWnd = MDIGetActive();
-            if(hWnd != NULL)
+            if (hWnd != NULL)
+            {
                 return (BOOL)::SendMessage(hWnd, WM_FORWARDMSG, 0, (LPARAM)pMsg);
+            }
         }
 
         return FALSE;
@@ -64,19 +71,19 @@ public:
         CReBarCtrl rebar(m_hWndToolBar);
         int i = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);    // toolbar is 2nd added band
         REBARBANDINFO rbi;
-        ZeroMemory(&rbi,sizeof(REBARBANDINFO));
+        ZeroMemory(&rbi, sizeof(REBARBANDINFO));
         rbi.cbSize = sizeof(REBARBANDINFO);
         rbi.fMask = RBBIM_STYLE;
         rebar.GetBandInfo(i, &rbi);
-        return !(rbi.fStyle&RBBS_HIDDEN);
+        return !(rbi.fStyle & RBBS_HIDDEN);
     }
     virtual BOOL OnIdle()
     {
         UIUpdateToolBar();
-        UISetCheck(ID_VIEW_TOOLBAR,IsToolbarVisible());
-        UISetCheck(ID_VIEW_STATUS_BAR,::IsWindowVisible(m_hWndStatusBar));
-        UISetCheck(ID_VIEW_FOLDERS,m_foldersDockWnd.IsVisible());
-        UISetCheck(ID_VIEW_OUTPUT,m_outputDockWnd.IsVisible());
+        UISetCheck(ID_VIEW_TOOLBAR, IsToolbarVisible());
+        UISetCheck(ID_VIEW_STATUS_BAR, ::IsWindowVisible(m_hWndStatusBar));
+        UISetCheck(ID_VIEW_FOLDERS, m_foldersDockWnd.IsVisible());
+        UISetCheck(ID_VIEW_OUTPUT, m_outputDockWnd.IsVisible());
         return FALSE;
     }
 
@@ -94,8 +101,8 @@ public:
         COMMAND_ID_HANDLER(ID_WINDOW_TILE_HORZ, OnWindowTile)
         COMMAND_ID_HANDLER(ID_WINDOW_ARRANGE, OnWindowArrangeIcons)
 
-        COMMAND_TOGGLE_MEMBER_HANDLER(ID_VIEW_FOLDERS,m_foldersDockWnd)
-        COMMAND_TOGGLE_MEMBER_HANDLER(ID_VIEW_OUTPUT,m_outputDockWnd)
+        COMMAND_TOGGLE_MEMBER_HANDLER(ID_VIEW_FOLDERS, m_foldersDockWnd)
+        COMMAND_TOGGLE_MEMBER_HANDLER(ID_VIEW_OUTPUT, m_outputDockWnd)
 
         CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
         CHAIN_MSG_MAP(baseClass)
@@ -129,33 +136,39 @@ public:
         CreateMDIClient();
         m_CmdBar.SetMDIClient(m_hWndMDIClient);
 
-//        UIAddToolBar(hWndToolBar);
-//        UISetCheck(ID_VIEW_TOOLBAR, 1);
-//        UISetCheck(ID_VIEW_STATUS_BAR, 1);
+        //        UIAddToolBar(hWndToolBar);
+        //        UISetCheck(ID_VIEW_TOOLBAR, 1);
+        //        UISetCheck(ID_VIEW_STATUS_BAR, 1);
 
-        // register object for message filtering and idle updates
+                // register object for message filtering and idle updates
         CMessageLoop* pLoop = _Module.GetMessageLoop();
         ATLASSERT(pLoop != NULL);
         pLoop->AddMessageFilter(this);
         pLoop->AddIdleHandler(this);
-///////////
+        ///////////
         InitializeDockingFrame();
-        CRect rcBar(0,0,300,100);
-        m_sampleDockWnd.Create(m_hWnd,rcBar,_T("Sample docking window - initially floating"));
-        CRect rcDef(0,0,100,100);
-        DWORD dwStyle=WS_OVERLAPPEDWINDOW | WS_POPUP| WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-        m_sampleDockWnd1.Create(m_hWnd,rcDef,_T("Sample docking window - initially docked"),dwStyle);
-        DockWindow(m_sampleDockWnd1,dockwins::CDockingSide(dockwins::CDockingSide::sBottom),
-                        0/*nBar*/,float(0.0)/*fPctPos*/,100/*nWidth*/,100/* nHeight*/);
+        CRect rcBar(0, 0, 300, 100);
 
-        m_foldersDockWnd.Create(m_hWnd,rcDef,_T("Folders"),dwStyle);
-        DockWindow(m_foldersDockWnd,dockwins::CDockingSide(dockwins::CDockingSide::sLeft),
-                        0/*nBar*/,float(0.0)/*fPctPos*/,200/*nWidth*/,100/* nHeight*/);
+        /* Create floating sample docking window */
+        m_sampleDockWnd.Create(m_hWnd, rcBar, _T("Sample docking window - initially floating"));
+        CRect rcDef(0, 0, 100, 100);
+        DWORD dwStyle = WS_OVERLAPPEDWINDOW | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+        
+        /* Create docked sample docking window */
+        m_sampleDockWnd1.Create(m_hWnd, rcDef, _T("Sample docking window - initially docked"), dwStyle);
+        DockWindow(m_sampleDockWnd1, dockwins::CDockingSide(dockwins::CDockingSide::sBottom),
+            0/*nBar*/, float(0.0)/*fPctPos*/, 100/*nWidth*/, 100/* nHeight*/);
 
-        m_outputDockWnd.Create(m_hWnd,rcDef,_T("Output"),dwStyle);
+        /* Create folder view window */
+        m_foldersDockWnd.Create(m_hWnd, rcDef, _T("Folders"), dwStyle);
+        DockWindow(m_foldersDockWnd, dockwins::CDockingSide(dockwins::CDockingSide::sLeft),
+            0/*nBar*/, float(0.0)/*fPctPos*/, 200/*nWidth*/, 100/* nHeight*/);
+
+        /* Create output window */
+        m_outputDockWnd.Create(m_hWnd, rcDef, _T("Output"), dwStyle);
         DockWindow(m_outputDockWnd,
-                    dockwins::CDockingSide(dockwins::CDockingSide::sRight),
-                    0/*nBar*/,float(0.0)/*fPctPos*/,200/*nWidth*/,100/* nHeight*/);
+            dockwins::CDockingSide(dockwins::CDockingSide::sRight),
+            0/*nBar*/, float(0.0)/*fPctPos*/, 200/*nWidth*/, 100/* nHeight*/);
 
         PostMessage(CWM_INITIALIZE);
         return 0;
@@ -172,7 +185,7 @@ public:
         m_stateMgr.Add(sstate::CToggleWindowAdapter(m_hWndStatusBar));
         m_stateMgr.Add(mgrDockWnds);
         CRegKey key;
-        if(key.Open(HKEY_CURRENT_USER,_T("SOFTWARE\\WTL Docking Window\\MDISample"),KEY_READ)==ERROR_SUCCESS)
+        if (key.Open(HKEY_CURRENT_USER, _T("SOFTWARE\\WTL Docking Window\\MDISample"), KEY_READ) == ERROR_SUCCESS)
         {
             sstate::CStgRegistry reg(key.Detach());
             m_stateMgr.Restore(reg);
@@ -185,9 +198,9 @@ public:
 
     LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        bHandled=false;
+        bHandled = false;
         CRegKey key;
-        if(key.Create(HKEY_CURRENT_USER,_T("SOFTWARE\\WTL Docking Window\\MDISample"))==ERROR_SUCCESS)
+        if (key.Create(HKEY_CURRENT_USER, _T("SOFTWARE\\WTL Docking Window\\MDISample")) == ERROR_SUCCESS)
         {
             sstate::CStgRegistry reg(key.Detach());
             m_stateMgr.Store(reg);
@@ -218,7 +231,7 @@ public:
         CReBarCtrl rebar = m_hWndToolBar;
         int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);    // toolbar is 2nd added band
         rebar.ShowBand(nBandIndex, bVisible);
-//        UISetCheck(ID_VIEW_TOOLBAR, bVisible);
+        //        UISetCheck(ID_VIEW_TOOLBAR, bVisible);
         UpdateLayout();
         return 0;
     }
@@ -227,7 +240,7 @@ public:
     {
         BOOL bVisible = !::IsWindowVisible(m_hWndStatusBar);
         ::ShowWindow(m_hWndStatusBar, bVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
-//        UISetCheck(ID_VIEW_STATUS_BAR, bVisible);
+        //        UISetCheck(ID_VIEW_STATUS_BAR, bVisible);
         UpdateLayout();
         return 0;
     }

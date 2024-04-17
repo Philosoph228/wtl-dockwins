@@ -915,7 +915,7 @@ protected:
 };
 
 //TImbeddedPackegeWnd
-template<class TPackageFrame, class TTraits = CDockingWindowTraits >
+template<class TPackageFrame, class TTraits >
 class CSubWndFramesPackage :
     public CRect,
     public CWndFramesPackageBase<CPtrFrame<IFrame>, TTraits >
